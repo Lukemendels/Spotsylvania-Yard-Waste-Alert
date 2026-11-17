@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chancellor Yard Waste · Spotsylvania County Demo</title>
+  <link rel="stylesheet" href="./site.css">
+  <script src="./config.js" defer></script>
+  <script src="./status.js" defer></script>
+</head>
+<body>
+  <div class="demo-bar"><div class="shell"><strong class="demo-label">Demo</strong></div></div>
+  <section id="resident" aria-labelledby="resident-title">
+    <header class="masthead">
+      <div class="shell">
+        <p>Spotsylvania County · Solid Waste &amp; Recycling</p>
+        <h1 id="resident-title" tabindex="-1">Yard Waste Collection</h1>
+      </div>
+    </header>
+    <main class="shell">
+      <div class="notice" id="website-alert" data-status="unavailable" aria-live="polite" aria-atomic="true">
+        <h2><span class="dot" aria-hidden="true"></span><span id="alert-title">Current status unavailable</span></h2>
+        <p id="alert-message"></p>
+        <time id="alert-time" hidden></time>
+      </div>
+      <div class="panel resident-details">
+        <h2>Chancellor Convenience Center</h2>
+        <address>5917 Harrison Road</address>
+        <p><a href="https://www.spotsylvania.va.us/2981/Yard-Waste-Collection-Program">Hours and accepted materials</a></p>
+      </div>
+    </main>
+  </section>
+
+  </body>
+</html>

@@ -1,0 +1,73 @@
+:root {
+      color-scheme: light;
+      --navy: #16314a;
+      --ink: #192d3e;
+      --muted: #455d6c;
+      --line: #cbd6dc;
+      --surface: #fff;
+      --paper: #f0f4f5;
+      --focus: #145ea4;
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    [hidden] { display: none !important; }
+    button { font: inherit; cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .shell { width: min(100% - 2rem, 54rem); margin-inline: auto; }
+    .demo-bar { background: #f9e6ad; color: #392c12; }
+    .demo-bar .shell {
+      min-height: 3.5rem; display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem; padding-block: .375rem;
+    }
+    .demo-label { font-size: .8125rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .view-switch { display: flex; align-items: center; gap: .25rem; }
+    .view-switch button {
+      border: 1px solid transparent; border-radius: .375rem; color: inherit;
+      background: transparent; min-height: 2.5rem; padding: .375rem .625rem; font-size: .875rem;
+    }
+    .view-switch button[aria-pressed="true"] { border-color: #9a7b42; background: #fff8e4; font-weight: 700; }
+    .masthead { background: var(--navy); color: #fff; padding-block: clamp(2rem, 6vw, 4rem); }
+    .masthead p { margin: 0 0 .625rem; color: #d9e5ee; font-size: .9375rem; font-weight: 650; }
+    h1 { margin: 0; line-height: 1.06; font-size: clamp(2rem, 6vw, 3.5rem); letter-spacing: -.04em; }
+    h2 { margin: 0; line-height: 1.2; font-size: clamp(1.35rem, 4vw, 1.85rem); letter-spacing: -.02em; }
+    main.shell { padding-block: 1.75rem 4rem; }
+    .panel {
+      padding: clamp(1.125rem, 4.5vw, 2rem);
+      background: var(--surface); border: 1px solid var(--line); border-radius: .75rem;
+    }
+    .description { color: var(--muted); margin: .5rem 0 0; line-height: 1.5; }
+    .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-top: 1.5rem; }
+    .status-button {
+      min-height: 5.25rem; display: flex; flex-wrap: wrap; align-content: center;
+      align-items: center; justify-content: center; gap: .5rem; padding: .75rem;
+      border: 2px solid var(--tone-border); border-radius: .5625rem; background: var(--tone-bg);
+      color: var(--tone-text); font-size: 1.125rem; font-weight: 750;
+    }
+    .status-button:hover { background: var(--tone-hover); }
+    .status-button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--tone-border); }
+    .dot { width: .75rem; height: .75rem; flex: none; border-radius: 50%; background: var(--tone-border); }
+    [data-status="accepting"] { --tone-bg: #e6f3eb; --tone-hover: #d5ebde; --tone-border: #237345; --tone-text: #13492b; }
+    [data-status="filling"] { --tone-bg: #fff1cc; --tone-hover: #fce6ae; --tone-border: #905f00; --tone-text: #573a03; }
+    [data-status="full"] { --tone-bg: #fce9e8; --tone-hover: #f7d9d7; --tone-border: #a03530; --tone-text: #78231f; }
+    [data-status="unavailable"] { --tone-bg: #edf2f5; --tone-border: #526b7b; --tone-text: #2a4456; }
+    .confirmation { border-top: 1px solid var(--line); margin-top: 1.5rem; padding-top: 1rem; }
+    .confirmation strong { display: block; font-size: 1.0625rem; }
+    .confirmation time { display: block; margin-top: .25rem; color: var(--muted); }
+    .notice {
+      padding: clamp(1.125rem, 4.5vw, 2rem); background: var(--tone-bg);
+      border: 1px solid var(--tone-border); border-inline-start-width: .4rem; border-radius: .5rem;
+      color: var(--tone-text);
+    }
+    .notice h2 { display: flex; align-items: center; gap: .75rem; }
+    .notice p { margin: .625rem 0 1rem; line-height: 1.5; }
+    .notice time { font-size: .9375rem; font-weight: 650; }
+    .resident-details { margin-top: 1rem; }
+    .resident-details h2 { font-size: 1.125rem; }
+    .resident-details address { margin-top: .375rem; font-style: normal; color: var(--muted); }
+    .resident-details a { color: #144e7a; font-weight: 650; }
+    .resident-details p { margin: .875rem 0 0; }
+    @media (max-width: 34rem) {
+      .controls { grid-template-columns: 1fr; }
+      .status-button { min-height: 3.625rem; }
+    }

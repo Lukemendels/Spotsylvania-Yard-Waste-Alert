@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chancellor Yard Waste · Staff</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #16314a;
+      --ink: #192d3e;
+      --muted: #455d6c;
+      --line: #cbd6dc;
+      --surface: #fff;
+      --paper: #f0f4f5;
+      --focus: #145ea4;
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    [hidden] { display: none !important; }
+    button { font: inherit; cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .shell { width: min(100% - 2rem, 54rem); margin-inline: auto; }
+    .demo-bar { background: #f9e6ad; color: #392c12; }
+    .demo-bar .shell {
+      min-height: 3.5rem; display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem; padding-block: .375rem;
+    }
+    .demo-label { font-size: .8125rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .view-switch { display: flex; align-items: center; gap: .25rem; }
+    .view-switch button {
+      border: 1px solid transparent; border-radius: .375rem; color: inherit;
+      background: transparent; min-height: 2.5rem; padding: .375rem .625rem; font-size: .875rem;
+    }
+    .view-switch button[aria-pressed="true"] { border-color: #9a7b42; background: #fff8e4; font-weight: 700; }
+    .masthead { background: var(--navy); color: #fff; padding-block: clamp(2rem, 6vw, 4rem); }
+    .masthead p { margin: 0 0 .625rem; color: #d9e5ee; font-size: .9375rem; font-weight: 650; }
+    h1 { margin: 0; line-height: 1.06; font-size: clamp(2rem, 6vw, 3.5rem); letter-spacing: -.04em; }
+    h2 { margin: 0; line-height: 1.2; font-size: clamp(1.35rem, 4vw, 1.85rem); letter-spacing: -.02em; }
+    main.shell { padding-block: 1.75rem 4rem; }
+    .panel {
+      padding: clamp(1.125rem, 4.5vw, 2rem);
+      background: var(--surface); border: 1px solid var(--line); border-radius: .75rem;
+    }
+    .description { color: var(--muted); margin: .5rem 0 0; line-height: 1.5; }
+    .controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-top: 1.5rem; }
+    .status-button {
+      min-height: 5.25rem; display: flex; flex-wrap: wrap; align-content: center;
+      align-items: center; justify-content: center; gap: .5rem; padding: .75rem;
+      border: 2px solid var(--tone-border); border-radius: .5625rem; background: var(--tone-bg);
+      color: var(--tone-text); font-size: 1.125rem; font-weight: 750;
+    }
+    .status-button:hover { background: var(--tone-hover); }
+    .status-button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--tone-border); }
+    .dot { width: .75rem; height: .75rem; flex: none; border-radius: 50%; background: var(--tone-border); }
+    [data-status="accepting"] { --tone-bg: #e6f3eb; --tone-hover: #d5ebde; --tone-border: #237345; --tone-text: #13492b; }
+    [data-status="filling"] { --tone-bg: #fff1cc; --tone-hover: #fce6ae; --tone-border: #905f00; --tone-text: #573a03; }
+    [data-status="full"] { --tone-bg: #fce9e8; --tone-hover: #f7d9d7; --tone-border: #a03530; --tone-text: #78231f; }
+    [data-status="unavailable"] { --tone-bg: #edf2f5; --tone-border: #526b7b; --tone-text: #2a4456; }
+    .confirmation { border-top: 1px solid var(--line); margin-top: 1.5rem; padding-top: 1rem; }
+    .confirmation strong { display: block; font-size: 1.0625rem; }
+    .confirmation time { display: block; margin-top: .25rem; color: var(--muted); }
+    .notice {
+      padding: clamp(1.125rem, 4.5vw, 2rem); background: var(--tone-bg);
+      border: 1px solid var(--tone-border); border-inline-start-width: .4rem; border-radius: .5rem;
+      color: var(--tone-text);
+    }
+    .notice h2 { display: flex; align-items: center; gap: .75rem; }
+    .notice p { margin: .625rem 0 1rem; line-height: 1.5; }
+    .notice time { font-size: .9375rem; font-weight: 650; }
+    .resident-details { margin-top: 1rem; }
+    .resident-details h2 { font-size: 1.125rem; }
+    .resident-details address { margin-top: .375rem; font-style: normal; color: var(--muted); }
+    .resident-details a { color: #144e7a; font-weight: 650; }
+    .resident-details p { margin: .875rem 0 0; }
+    @media (max-width: 34rem) {
+      .controls { grid-template-columns: 1fr; }
+      .status-button { min-height: 3.625rem; }
+    }
+  
+    .office-setup { display: flex; flex-wrap: wrap; gap: .625rem; align-items: center; margin-top: 1.25rem; }
+    .office-setup label { font-weight: 700; }
+    .office-setup input, .office-setup button { min-height: 2.625rem; border-radius: .375rem; font: inherit; }
+    .office-setup input { flex: 1 1 11rem; min-width: 0; padding-inline: .625rem; border: 1px solid var(--line); }
+    .office-setup button { color: white; padding-inline: .875rem; border: 1px solid var(--navy); background: var(--navy); }
+    .status-button:disabled { cursor: wait; opacity: .6; }
+  </style>
+</head>
+<body>
+  <div class="demo-bar"><div class="shell"><strong class="demo-label">Demo</strong></div></div>
+  <section id="staff" aria-labelledby="staff-title">
+    <header class="masthead">
+      <div class="shell">
+        <p>Chancellor Convenience Center</p>
+        <h1 id="staff-title" tabindex="-1">Yard waste status</h1>
+      </div>
+    </header>
+    <main class="shell">
+      <div class="panel">
+        <h2>Update acceptance</h2>
+        <p class="description">Choose the current yard waste status.</p>
+        <form id="office-setup" class="office-setup">
+          <label for="key">Office key</label>
+          <input type="password" id="key" required minlength="32" autocomplete="off">
+          <button type="submit" id="connect">Connect this browser</button>
+        </form>
+        <div class="controls" id="controls" hidden role="group" aria-label="Yard waste acceptance">
+          <button type="button" class="status-button" data-set-status="accepting" data-status="accepting" aria-pressed="false"><span class="dot" aria-hidden="true"></span>Accepting</button>
+          <button type="button" class="status-button" data-set-status="filling" data-status="filling" aria-pressed="false"><span class="dot" aria-hidden="true"></span>Filling up</button>
+          <button type="button" class="status-button" data-set-status="full" data-status="full" aria-pressed="false"><span class="dot" aria-hidden="true"></span>Full</button>
+        </div>
+        <div class="confirmation" role="status">
+          <strong id="staff-result"></strong>
+          <time id="staff-time" hidden></time>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  
+<script>
+  const storageKey = "chancellor-yard-waste-office-key";
+  const labels = { accepting: "Accepting", filling: "Filling up", full: "Full" };
+  const setup = document.querySelector("#office-setup");
+  const keyInput = document.querySelector("#key");
+  const connect = document.querySelector("#connect");
+  const controls = document.querySelector("#controls");
+  const buttons = [...document.querySelectorAll("[data-set-status]")];
+  const result = document.querySelector("#staff-result");
+  const stamp = document.querySelector("#staff-time");
+  const eastern = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York", month: "short", day: "numeric",
+    hour: "numeric", minute: "2-digit", timeZoneName: "short"
+  });
+
+  let officeKey = "";
+  let pending = null;
+  let busy = false;
+  try {
+    officeKey = localStorage.getItem(storageKey) || "";
+  } catch {
+    // The operator can still connect for the current page.
+  }
+
+  function display(message, latest) {
+    result.textContent = message;
+    stamp.hidden = !latest;
+    if (latest) {
+      stamp.dateTime = latest.confirmedAt;
+      stamp.textContent = "Confirmed " + eastern.format(new Date(latest.confirmedAt));
+    }
+    if (latest !== undefined) {
+      for (const button of buttons) {
+        button.setAttribute("aria-pressed", String(button.dataset.setStatus === latest?.status));
+      }
+    }
+  }
+
+  function rpc(method, ...args) {
+    return new Promise((resolve, reject) => {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args);
+    });
+  }
+
+  function rejectedKey(error) {
+    return String(error.message).includes("Office key not accepted");
+  }
+
+  async function connectBrowser(key, remember) {
+    connect.disabled = true;
+    setup.hidden = false;
+    controls.hidden = true;
+    display("Connecting to the status log…");
+    try {
+      const latest = await rpc("openOffice", key);
+      officeKey = key;
+      if (remember) {
+        try { localStorage.setItem(storageKey, key); } catch { /* Current page still works. */ }
+      }
+      setup.hidden = true;
+      controls.hidden = false;
+      keyInput.value = "";
+      display(latest ? "Last saved · " + labels[latest.status] : "Choose a status to open the shift.", latest);
+    } catch (error) {
+      display(rejectedKey(error) ? "Office key not accepted. Enter the current key." : "Could not connect. Try again.");
+    } finally {
+      connect.disabled = false;
+    }
+  }
+
+  setup.addEventListener("submit", event => {
+    event.preventDefault();
+    connectBrowser(keyInput.value.trim(), true);
+  });
+
+  async function submitStatus(status, button) {
+    if (busy) return;
+    if (!pending || pending.status !== status) pending = { status, id: crypto.randomUUID() };
+    busy = true;
+    for (const control of buttons) control.disabled = true;
+    display("Saving status…");
+    try {
+      const { saved, latest } = await rpc("saveStatus", officeKey, status, pending.id);
+      pending = null;
+      display(saved.version === latest.version ? "Saved · " + labels[saved.status]
+        : "Already recorded · latest is " + labels[latest.status], latest);
+    } catch (error) {
+      if (rejectedKey(error)) {
+        setup.hidden = false;
+        controls.hidden = true;
+        display("Office key not accepted. Enter the current key.");
+        keyInput.focus();
+      } else {
+        display("Save not confirmed. Tap the same status to retry.");
+      }
+    } finally {
+      busy = false;
+      for (const control of buttons) control.disabled = false;
+      if (!controls.hidden) button.focus();
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener("click", () => submitStatus(button.dataset.setStatus, button));
+  }
+
+  if (officeKey) connectBrowser(officeKey, false);
+  else display("Connect this browser to update yard waste status.");
+</script>
+</body>
+</html>
