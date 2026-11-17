@@ -3,6 +3,7 @@ const SERVICE = 'yard-waste';
 const STATUSES = ['accepting', 'filling', 'full'];
 const LOG_HEADERS = ['Update ID', 'Site ID', 'Service', 'Status', 'Confirmed At (UTC)', 'Publisher Source'];
 const PUBLIC_HEADERS = ['Status', 'Confirmed At (UTC)', 'Expires At (UTC)', 'Version'];
+const QUEUE_LIMIT = 30;
 const FRESHNESS_MS = 2 * 60 * 60 * 1000;
 
 function doGet(event) {
@@ -31,7 +32,9 @@ function doGet(event) {
 
 function openOffice(key) {
   authorize_(key);
-  return latestCommitted_(spreadsheet_().getSheetByName('Status Log'));
+  const properties = PropertiesService.getScriptProperties().getProperties();
+  const queue = readQueue_(properties);
+  return queue[queue.length - 1] || readPublished_(properties);
 }
 
 function saveStatus(key, status, requestId) {
@@ -44,28 +47,33 @@ function saveStatus(key, status, requestId) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const log = spreadsheet_().getSheetByName('Status Log');
-    const lastRow = log.getLastRow();
-    const duplicate = lastRow > 1 && log.getRange(2, 1, lastRow - 1, 1)
-      .createTextFinder(requestId).matchEntireCell(true).findNext();
+    const store = PropertiesService.getScriptProperties();
+    const properties = store.getProperties();
+    const queue = readQueue_(properties);
+    const published = readPublished_(properties);
+    const receipts = JSON.parse(properties.RECEIPTS || '[]');
+    const duplicate = queue.concat(receipts).find(record => record.id === requestId);
     if (duplicate) {
-      const version = duplicate.getRow();
-      const row = log.getRange(version, 1, 1, LOG_HEADERS.length).getValues()[0];
-      if (row[3] !== status) throw new Error('Update ID is already in use.');
-      return {
-        saved: committedRow_(row, version),
-        latest: latestCommitted_(log)
-      };
+      if (duplicate.status !== status) throw new Error('Update ID is already in use.');
+      return queue[queue.length - 1] || published;
     }
 
-    const confirmedAt = new Date().toISOString();
-    log.appendRow([requestId, SITE, SERVICE, status, confirmedAt, 'Chancellor office']);
-    SpreadsheetApp.flush();
-    const saved = { status, confirmedAt, version: lastRow + 1 };
-    return { saved, latest: saved };
+    if (queue.length >= QUEUE_LIMIT) throw new Error('Publisher queue is full.');
+    const record = { id: requestId, status, confirmedAt: new Date().toISOString(), queued: true };
+    queue.push(record);
+    store.setProperty('STATUS_QUEUE', JSON.stringify(queue));
+    return record;
   } finally {
     lock.releaseLock();
   }
+}
+
+function readQueue_(properties) {
+  return JSON.parse(properties.STATUS_QUEUE || '[]');
+}
+
+function readPublished_(properties) {
+  return JSON.parse(properties.PUBLISHED_STATUS || 'null');
 }
 
 function authorize_(candidate) {
@@ -81,26 +89,6 @@ function authorize_(candidate) {
   if (difference !== 0) throw new Error('Office key not accepted.');
 }
 
-function spreadsheet_() {
-  const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
-  if (!id) throw new Error('Demo setup is incomplete.');
-  return SpreadsheetApp.openById(id);
-}
-
-function committedRow_(row, version) {
-  const confirmedAt = timestamp_(row[4]);
-  if (row[1] !== SITE || row[2] !== SERVICE || !STATUSES.includes(row[3]) || !confirmedAt) {
-    throw new Error('The latest status row is invalid.');
-  }
-  return { status: row[3], confirmedAt, version };
-}
-
-function latestCommitted_(log) {
-  const lastRow = log.getLastRow();
-  if (lastRow < 2) return null;
-  return committedRow_(log.getRange(lastRow, 1, 1, LOG_HEADERS.length).getValues()[0], lastRow);
-}
-
 function timestamp_(value) {
   const time = value instanceof Date ? value.getTime() :
     typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value)
@@ -113,27 +101,51 @@ function publishPending_() {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const spreadsheet = spreadsheet_();
-    const latest = latestCommitted_(spreadsheet.getSheetByName('Status Log'));
-    if (!latest) return;
+    const store = PropertiesService.getScriptProperties();
+    const properties = store.getProperties();
+    const queue = readQueue_(properties);
+    if (!queue.length) return;
 
-    const output = spreadsheet.getSheetByName('Published Status').getRange(2, 1, 1, PUBLIC_HEADERS.length);
-    if (Number(output.getValues()[0][3]) >= latest.version) return;
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    if (!spreadsheet) throw new Error('Publisher requires the bound demo Sheet.');
+    const log = spreadsheet.getSheetByName('Status Log');
+    let latest;
+    for (const record of queue) {
+      const lastRow = log.getLastRow();
+      const duplicate = lastRow > 1 && log.getRange(2, 1, lastRow - 1, 1)
+        .createTextFinder(record.id).matchEntireCell(true).findNext();
+      if (!duplicate) {
+        log.appendRow([record.id, SITE, SERVICE, record.status, record.confirmedAt, 'Chancellor office']);
+      }
+      latest = { status: record.status, confirmedAt: record.confirmedAt,
+        expiresAt: new Date(Date.parse(record.confirmedAt) + FRESHNESS_MS).toISOString(),
+        version: duplicate ? duplicate.getRow() : lastRow + 1 };
+    }
 
-    const expiresAt = new Date(Date.parse(latest.confirmedAt) + FRESHNESS_MS).toISOString();
-    output.setValues([[latest.status, latest.confirmedAt, expiresAt, latest.version]]);
+    const published = spreadsheet.getSheetByName('Published Status');
+    published.getRange(2, 1, 1, PUBLIC_HEADERS.length)
+      .setValues([[latest.status, latest.confirmedAt, latest.expiresAt, latest.version]]);
     SpreadsheetApp.flush();
+
+    const receipts = JSON.parse(properties.RECEIPTS || '[]');
+    const newReceipts = queue.map(({ id, status }) => ({ id, status }));
+    store.setProperties({
+      STATUS_QUEUE: '[]',
+      PUBLISHED_STATUS: JSON.stringify(latest),
+      RECEIPTS: JSON.stringify(receipts.concat(newReceipts).slice(-QUEUE_LIMIT))
+    });
   } finally {
     lock.releaseLock();
   }
 }
 
 function publicStatus_() {
-  const sheet = spreadsheet_().getSheetByName('Published Status');
-  const [status, rawConfirmed, rawExpiry, rawVersion] = sheet.getRange(2, 1, 1, PUBLIC_HEADERS.length).getValues()[0];
+  const properties = PropertiesService.getScriptProperties().getProperties();
+  const {
+    status, confirmedAt: rawConfirmed, expiresAt: rawExpiry, version = 0
+  } = readPublished_(properties) || {};
   const confirmedAt = timestamp_(rawConfirmed);
   const expiresAt = timestamp_(rawExpiry);
-  const version = Number(rawVersion) || 0;
   const now = Date.now();
   if (!STATUSES.includes(status) || !confirmedAt || !expiresAt || !Number.isInteger(version) ||
       version < 2 || Date.parse(confirmedAt) > now || Date.parse(expiresAt) <= now ||
@@ -150,7 +162,6 @@ function setupDemo() {
   const properties = PropertiesService.getScriptProperties();
   const key = properties.getProperty('OFFICE_KEY');
   if (!key || key.length < 32) throw new Error('Set OFFICE_KEY in Script Properties first.');
-  properties.setProperty('SPREADSHEET_ID', spreadsheet.getId());
   prepareTab_(spreadsheet, 'Status Log', LOG_HEADERS);
   prepareTab_(spreadsheet, 'Published Status', PUBLIC_HEADERS);
   const hasPublisher = ScriptApp.getProjectTriggers().some(trigger =>

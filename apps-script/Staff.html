@@ -148,7 +148,7 @@
     stamp.hidden = !latest;
     if (latest) {
       stamp.dateTime = latest.confirmedAt;
-      stamp.textContent = "Confirmed " + eastern.format(new Date(latest.confirmedAt));
+      stamp.textContent = (latest.queued ? "Received " : "Confirmed ") + eastern.format(new Date(latest.confirmedAt));
     }
     if (latest !== undefined) {
       for (const button of buttons) {
@@ -181,7 +181,7 @@
       setup.hidden = true;
       controls.hidden = false;
       keyInput.value = "";
-      display(latest ? "Last saved · " + labels[latest.status] : "Choose a status to open the shift.", latest);
+      display(latest ? (latest.queued ? "Queued · " : "Published · ") + labels[latest.status] : "Choose a status to open the shift.", latest);
     } catch (error) {
       display(rejectedKey(error) ? "Office key not accepted. Enter the current key." : "Could not connect. Try again.");
     } finally {
@@ -201,10 +201,9 @@
     for (const control of buttons) control.disabled = true;
     display("Saving status…");
     try {
-      const { saved, latest } = await rpc("saveStatus", officeKey, status, pending.id);
+      const latest = await rpc("saveStatus", officeKey, status, pending.id);
       pending = null;
-      display(saved.version === latest.version ? "Saved · " + labels[saved.status]
-        : "Already recorded · latest is " + labels[latest.status], latest);
+      display((latest.queued ? "Queued for publishing · " : "Published · ") + labels[latest.status], latest);
     } catch (error) {
       if (rejectedKey(error)) {
         setup.hidden = false;
