@@ -144,12 +144,12 @@ function publicStatus_() {
 }
 
 // Run this function once from the editor attached to the private demo Sheet.
-function setupDemo_() {
+function setupDemo() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (!spreadsheet) throw new Error('Run setup from the Apps Script project attached to a Sheet.');
   const properties = PropertiesService.getScriptProperties();
   const key = properties.getProperty('OFFICE_KEY');
   if (!key || key.length < 32) throw new Error('Set OFFICE_KEY in Script Properties first.');
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  if (!spreadsheet) throw new Error('Run setup from the Apps Script project attached to a Sheet.');
   properties.setProperty('SPREADSHEET_ID', spreadsheet.getId());
   prepareTab_(spreadsheet, 'Status Log', LOG_HEADERS);
   prepareTab_(spreadsheet, 'Published Status', PUBLIC_HEADERS);
